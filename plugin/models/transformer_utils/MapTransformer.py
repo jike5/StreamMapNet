@@ -440,7 +440,8 @@ class MapTransformer(Transformer):
         spatial_shapes = torch.as_tensor(
             spatial_shapes, dtype=torch.long, device=feat_flatten.device)
         level_start_index = torch.cat((spatial_shapes.new_zeros(
-            (1, )), spatial_shapes.prod(1).cumsum(0)[:-1]))
+            (1, )), spatial_shapes.prod(1).cumsum(0)[:-1])) # prod表示对每一个特征图计算h*w，从[num_levels,2]得到[num_levels]
+        # cumsum表示累加，并去掉最后一个元素
         
         feat_flatten = feat_flatten.permute(1, 0, 2)  # (H*W, bs, embed_dims)
 

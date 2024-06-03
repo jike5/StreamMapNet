@@ -311,7 +311,7 @@ class MapDetectorHead(nn.Module):
                     [bs, num_query,]
         '''
 
-        bev_features = self._prepare_context(bev_features)
+        bev_features = self._prepare_context(bev_features) # BEV特征维度为256，Map Query维度为512(embed_dim)，使用1x1卷积升维
 
         bs, C, H, W = bev_features.shape
         img_masks = bev_features.new_zeros((bs, H, W))
@@ -319,9 +319,9 @@ class MapDetectorHead(nn.Module):
         pos_embed = None
 
         query_embedding = self.query_embedding.weight[None, ...].repeat(bs, 1, 1) # [B, num_q, embed_dims]
-        input_query_num = self.num_queries
+        input_query_num = self.num_queries # 100
         # num query: self.num_query + self.topk
-        if self.streaming_query:
+        if self.streaming_query: # True
             query_embedding, prop_query_embedding, init_reference_points, prop_ref_pts, memory_query, is_first_frame_list, trans_loss = \
                 self.propagate(query_embedding, img_metas, return_loss=True)
             
@@ -352,7 +352,7 @@ class MapDetectorHead(nn.Module):
             query_key_padding_mask=query_embedding.new_zeros((bs, self.num_queries), dtype=torch.bool), # mask used in self-attn,
         )
         outputs = []
-        for i, (queries) in enumerate(inter_queries):
+        for i, (queries) in enumerate(inter_queries): # 将每一层transformer的结果进行输出，存入outputs
             reg_points = inter_references[i] # (bs, num_q, num_points, 2)
             bs = reg_points.shape[0]
             reg_points = reg_points.view(bs, -1, 2*self.num_points) # (bs, num_q, 2*num_points)
@@ -371,7 +371,7 @@ class MapDetectorHead(nn.Module):
                 'scores': scores_list
             }
             outputs.append(pred_dict)
-        
+        # gts已经进行了归一化（0，1）， preds则在（0，1）
         loss_dict, det_match_idxs, det_match_gt_idxs, gt_lines_list = self.loss(gts=gts, preds=outputs)
         if self.streaming_query:
             query_list = []

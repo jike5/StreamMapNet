@@ -244,7 +244,7 @@ train_pipeline = [
         coords_dim=coords_dim,
         roi_size=roi_size,
         sample_num=num_points,
-        normalize=True,
+        normalize=True, # 基于roi_size进行归一化
         permute=permute,
     ),
     dict(type='LoadMultiViewImagesFromFiles', to_float32=True),
